@@ -2,6 +2,18 @@
 
 Backend da plataforma DevShowcase: uma API REST para desenvolvedores cadastrarem seus perfis, projetos, tecnologias utilizadas e receberem feedbacks.
 
+## Identificação do grupo
+
+- **Curso:** Tecnologia em Sistemas para Internet
+- **Polo:** Olho d'Água do Piauí - PI
+- **Disciplina:** Programação Backend
+
+**Integrantes:**
+
+- Adriano Carvalho de Abreu
+- Marcos Venicios de Paiva
+- Washington Heles Pereira da Silva Filho
+
 ## Tecnologias
 
 - Node.js
