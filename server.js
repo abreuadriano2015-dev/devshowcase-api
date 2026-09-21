@@ -1,6 +1,6 @@
 const express = require('express');
-const { PrismaClient } = require('@prisma/client');
 const { body, validationResult } = require('express-validator');
+const repositories = require('./repositories');
 const {
     toProfileInput,
     toTechnologyInput,
@@ -13,7 +13,6 @@ const {
 } = require('./dtos');
 
 const app = express();
-const prisma = new PrismaClient();
 
 const PORT = 3000;
 
@@ -58,9 +57,7 @@ app.post(
         const data = toProfileInput(req.body);
 
         try {
-            const profile = await prisma.profile.create({
-                data
-            });
+            const profile = await repositories.createProfile(data);
 
             return res.status(201).json(toProfileResponse(profile));
         } catch (error) {
@@ -90,12 +87,7 @@ app.get('/api/profiles/:id', async (req, res) => {
     }
 
     try {
-        const profile = await prisma.profile.findUnique({
-            where: { id },
-            include: {
-                projects: true
-            }
-        });
+        const profile = await repositories.findProfileById(id);
 
         if (!profile) {
             return res.status(404).json({
@@ -134,9 +126,7 @@ app.post(
         const data = toTechnologyInput(req.body);
 
         try {
-            const technology = await prisma.technology.create({
-                data
-            });
+            const technology = await repositories.createTechnology(data);
 
             return res.status(201).json(toTechnologyResponse(technology));
         } catch (error) {
@@ -158,11 +148,7 @@ app.post(
 // GET /api/technologies - Listar tecnologias
 app.get('/api/technologies', async (req, res) => {
     try {
-        const technologies = await prisma.technology.findMany({
-            orderBy: {
-                id: 'asc'
-            }
-        });
+        const technologies = await repositories.listTechnologies();
 
         return res.json(technologies.map(toTechnologyResponse));
     } catch (error) {
@@ -210,28 +196,10 @@ app.post(
             });
         }
 
-        const { title, description, url, profileId, technologyIds } = toProjectInput(req.body);
+        const data = toProjectInput(req.body);
 
         try {
-            const project = await prisma.project.create({
-                data: {
-                    title,
-                    description,
-                    url,
-                    profile: {
-                        connect: {
-                            id: profileId
-                        }
-                    },
-                    technologies: {
-                        connect: technologyIds.map(id => ({ id }))
-                    }
-                },
-                include: {
-                    profile: true,
-                    technologies: true
-                }
-            });
+            const project = await repositories.createProject(data);
 
             return res.status(201).json(toProjectResponse(project));
         } catch (error) {
@@ -253,16 +221,7 @@ app.post(
 // GET /api/projects - Listar projetos
 app.get('/api/projects', async (req, res) => {
     try {
-        const projects = await prisma.project.findMany({
-            include: {
-                profile: true,
-                technologies: true,
-                feedbacks: true
-            },
-            orderBy: {
-                id: 'asc'
-            }
-        });
+        const projects = await repositories.listProjects();
 
         return res.json(projects.map(toProjectResponse));
     } catch (error) {
@@ -308,16 +267,10 @@ app.post(
         const { author, comment } = toFeedbackInput(req.body);
 
         try {
-            const feedback = await prisma.feedback.create({
-                data: {
-                    author,
-                    comment,
-                    project: {
-                        connect: {
-                            id: projectId
-                        }
-                    }
-                }
+            const feedback = await repositories.createFeedback({
+                projectId,
+                author,
+                comment
             });
 
             return res.status(201).json(toFeedbackResponse(feedback));
